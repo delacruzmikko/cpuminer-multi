@@ -1,38 +1,85 @@
-# What is CPUMiner-Multi?
+CPUMiner-Multi
+==============
 
-CPUMiner-Multi is a multi-threaded CPU miner, [Wolf](//github.com/wolf9466)'s fork of [LucasJones](//github.com/lucasjones)' cpuminer-multi.
+###NOTE: Wolf's cpuminer-multi is no longer maintained - please use https://github.com/genesismining/sgminer-gm.
 
-Currently supported algorithm is cryptonight.
+This is a multi-threaded CPU miner, fork of [LucasJones](//github.com/lucasjones)' cpuminer-multi.
 
-## Links
+#### Table of contents
 
-- [Discussion](https://bitcointalk.org/index.php?topic=632724)
-- [Source Code](https://github.com/wolf9466/cpuminer-multi)
-- [Dockerfile](https://github.com/minecoins/docker-wolf-cpuminer-multi)
+* [Algorithms](#algorithms)
+* [Dependencies](#dependencies)
+* [Download](#download)
+* [Build](#build)
+* [Usage instructions](#usage-instructions)
+* [Donations](#donations)
+* [Credits](#credits)
+* [License](#license)
 
-# How to use this image
+Algorithms
+==========
+#### Currently supported
+ * ✓ __cryptonight__ (Bytecoin [BCN], Monero)
 
-Run in background:
+Dependencies
+============
+* libcurl			http://curl.haxx.se/libcurl/
+* jansson			http://www.digip.org/jansson/ (jansson is included in-tree)
 
-```console
-$ docker run -d --name some-wolf-cpuminer-multi minecoins/wolf-cpuminer-multi -a cryptonight -o stratum+tcp://mine.moneropool.com:3333 -u 49TfoHGd6apXxNQTSHrMBq891vH6JiHmZHbz5Vx36nLRbz6WgcJunTtgcxnoG6snKFeGhAJB5LjyAEnvhBgCs5MtEgML3LU -p x
-```
+Download
+========
+* For binary releases, see Bitcointalk thread: https://bitcointalk.org/index.php?topic=632724
+* Git tree:   https://github.com/wolf9466/cpuminer-multi
+* Clone with `git clone https://github.com/wolf9466/cpuminer-multi`
 
-Get wolf-cpuminer-multi options with:
+Build
+=====
 
-```console
-$ docker run --rm minecoins/wolf-cpuminer-multi --help
-```
+#### Basic *nix build instructions:
+ * ./autogen.sh	# only needed if building from git repo
+ * Optimal GCC flags are built in - you only need to use -march=native if you want it
+  * # Use -march=native if building for a single machine
+ * With AES-NI:
+ * CFLAGS="*-march=native*" ./configure
+ * Without AES-NI:
+ * CFLAGS="*-march=native*" ./configure --disable-aes-ni
+ 
+ * make
 
-Fetch logs of a container:
+#### Architecture-specific notes:
+ * CryptoNight works only on x86 and x86-64.
+ * If you don't have AES-NI, it's slower. A lot slower, around 1/3rd the speed. This implementation is deprecated and will not be improved.
 
-```console
-$ docker logs some-wolf-cpuminer-multi
-```
+Usage instructions
+==================
+Run "minerd --help" to see options.
 
-# Donations
+Example command line
+==================
+./minerd -a cryptonight -o stratum+tcp://mine.moneropool.com:3333 -p x -u 42QWoLF7pdwMcTXDviJvNkWEHJ4TXnMBh2Cx6HNkVAW57E48Zfw6wLwDUYFDYJAqY7PLJUTz9cHWB5C4wUA7UJPu5wPf4sZ -t `nproc`
 
-Donations for work on dockerizing are accepted at:
+### Connecting through a proxy
 
-- BTC: `1NUMFM6UTv9iRVVzjsfhzbAGjwNxQRA8Qz`
-- XMR: `49TfoHGd6apXxNQTSHrMBq891vH6JiHmZHbz5Vx36nLRbz6WgcJunTtgcxnoG6snKFeGhAJB5LjyAEnvhBgCs5MtEgML3LU`
+Use the --proxy option.
+
+To use a SOCKS proxy, add a socks4:// or socks5:// prefix to the proxy host  
+Protocols socks4a and socks5h, allowing remote name resolving, are also available since libcurl 7.18.0.
+
+If no protocol is specified, the proxy is assumed to be a HTTP proxy.  
+When the --proxy option is not used, the program honors the http_proxy and all_proxy environment variables.
+
+Donations
+=========
+Donations for the work done in this fork are accepted at
+* XMR: `42QWoLF7pdwMcTXDviJvNkWEHJ4TXnMBh2Cx6HNkVAW57E48Zfw6wLwDUYFDYJAqY7PLJUTz9cHWB5C4wUA7UJPu5wPf4sZ`
+* BTC: `1WoLFumNUvjCgaCyjFzvFrbGfDddYrKNR`
+
+Credits
+=======
+This faster CPUMiner-multi was forked from LucasJones', and has been developed by Wolf.
+Special thanks to Intel for helping me with the usage of the AESKEYGENASSIST instruction, which I used to replace the calls to the slow, unoptimized oaes_lib.
+Special thanks also to dga for his code with that loop - since it runs over 500,000 times per hash, it's extremely important.
+
+License
+=======
+GPLv2.  See COPYING for details.

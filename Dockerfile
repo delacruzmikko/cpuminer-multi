@@ -1,33 +1,25 @@
-FROM ubuntu:16.04
+#
+# Dockerfile for cpuminer
+# usage: docker run creack/cpuminer --url xxxx --user xxxx --pass xxxx
+# ex: docker run creack/cpuminer --url stratum+tcp://ltc.pool.com:80 --user creack.worker1 --pass abcdef
+#
+#
 
-RUN apt-get update \
-    && apt-get -qq --no-install-recommends install \
-        libcurl3 \
-    && rm -r /var/lib/apt/lists/*
+FROM		ubuntu:12.10
+MAINTAINER	Guillaume J. Charmes <guillaume@charmes.net>
 
-RUN set -x \
-    && buildDeps=' \
-        automake \
-        ca-certificates \
-        curl \
-        gcc \
-        libc6-dev \
-        libcurl4-openssl-dev \
-        make \
-    ' \
-    && apt-get -qq update \
-    && apt-get -qq --no-install-recommends install $buildDeps \
-    && rm -rf /var/lib/apt/lists/* \
-    && mkdir -p /usr/local/src/wolf9466-cpuminer-multi \
-    && cd /usr/local/src/wolf9466-cpuminer-multi \
-    && curl -sL https://github.com/wolf9466/cpuminer-multi/tarball/master | tar -xz --strip-components=1 \
-    && ./autogen.sh \
-    && ./configure \
-    && make -j"$(nproc)" \
-    && make install \
-    && cd .. \
-    && rm -r wolf9466-cpuminer-multi \
-    && apt-get -qq --auto-remove purge $buildDeps
+RUN		apt-get update -qq
 
-ENTRYPOINT ["minerd"]
-CMD ["-a", "cryptonight", "-o", "stratum+tcp://mine.moneropool.com:3333", "-u", "49TfoHGd6apXxNQTSHrMBq891vH6JiHmZHbz5Vx36nLRbz6WgcJunTtgcxnoG6snKFeGhAJB5LjyAEnvhBgCs5MtEgML3LU", "-p", "x"]
+RUN		apt-get install -qqy automake
+RUN		apt-get install -qqy libcurl4-openssl-dev
+RUN		apt-get install -qqy git
+RUN		apt-get install -qqy make
+
+RUN		git clone https://github.com/pooler/cpuminer
+
+RUN		cd cpuminer && ./autogen.sh
+RUN		cd cpuminer && ./configure CFLAGS="-O3"
+RUN		cd cpuminer && make
+
+WORKDIR		/cpuminer
+ENTRYPOINT	["./minerd"]
